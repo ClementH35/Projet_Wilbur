@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1647354514 source:c:\users\cleme\onedrive\bureau\bts\projet\test_trame\main.cpp
+	<iostream>
+	<fstream>
+	<vector>
+
