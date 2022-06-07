@@ -1,0 +1,74 @@
+#ifndef RECUP_GYROSCOPE_H
+#define RECUP_GYROSCOPE_H
+
+#include <QMainWindow>
+#include <linux/i2c-dev.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include </usr/include/unistd.h>
+#include </usr/include/math.h>
+#include </usr/include/stdlib.h>
+#include </usr/include/fcntl.h>
+#include <QString>
+#include <QTextStream>
+#include </usr/include/time.h>
+
+namespace Ui {
+class Recup_Gyroscope;
+}
+
+class Recup_Gyroscope : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit Recup_Gyroscope(QWidget *parent = 0);
+    ~Recup_Gyroscope();
+    void detectIMU();
+    void enableIMU();
+    int mymillis();
+    int calculer_angles();
+    QString Getangles();
+    void readGYR(int *g);
+    void readBlock(uint8_t command, uint8_t size, uint8_t *data);
+    
+    
+    void selectDevice(int file, int addr);
+    
+    void readACC(int  *a);
+    
+    void readMAG(int  *m);
+    
+    void readGYR(int *g);
+    
+    void readTMP_PRESS(int *g);
+    
+    void readCalBMP280(int16_t *Reg);
+    
+    void writeTMP();
+    
+    void writeAccReg(uint8_t reg, uint8_t value);
+    
+    void writeMagReg(uint8_t reg, uint8_t value);
+    
+    void writeGyrReg(uint8_t reg, uint8_t value);
+
+private:
+    Ui::Recup_Gyroscope *ui;
+    float rate_gyr_y;   // [deg/s]
+    float rate_gyr_x;   // [deg/s]
+    float rate_gyr_z;   // [deg/s]
+    float gyroXangle;
+    float gyroYangle;
+    float gyroZangle;
+    float AccYangle;
+    float AccXangle;
+    float magRawX;
+    float magRawY;
+    float magRawZ;
+    QString angles;
+};
+
+#endif // RECUP_GYROSCOPE_H

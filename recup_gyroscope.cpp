@@ -141,4 +141,142 @@ void Recup_Gyroscope::enableIMU()
         writeGyrReg(LSM9DS1_ORIENT_CFG_G,0b10111000);   // Swap orientation
 
 
+}
 
+
+int file;
+
+
+void readBlock(uint8_t command, uint8_t size, uint8_t *data)
+        {
+            int result = i2c_smbus_read_i2c_block_data(file, command, size, data);
+            if (result != size){
+                exit(1);
+            }
+        }
+
+
+void selectDevice(int file, int addr)
+        {
+            if (ioctl(file, I2C_SLAVE, addr) < 0) {
+                }
+        }
+
+
+        void readACC(int  *a)
+        {
+            uint8_t block[6];
+            selectDevice(file,LSM9DS1_ACC_ADDRESS);
+            readBlock(0x80 |  LSM9DS1_OUT_X_L_XL, sizeof(block), block);
+
+            // Combine readings for each axis.
+            *a = (int16_t)(block[0] | block[1] << 8);
+            *(a+1) = (int16_t)(block[2] | block[3] << 8);
+            *(a+2) = (int16_t)(block[4] | block[5] << 8);
+
+        }
+
+
+        void readMAG(int  *m)
+        {
+            uint8_t block[6];
+                selectDevice(file,LSM9DS1_MAG_ADDRESS);
+            readBlock(0x80 |  LSM9DS1_OUT_X_L_M, sizeof(block), block);
+
+
+            // Combine readings for each axis.
+            *m = (int16_t)(block[0] | block[1] << 8);
+            *(m+1) = (int16_t)(block[2] | block[3] << 8);
+            *(m+2) = (int16_t)(block[4] | block[5] << 8);
+
+        }
+
+        void readGYR(int *g)
+        {
+            uint8_t block[6];
+                selectDevice(file,LSM9DS1_GYR_ADDRESS);
+            readBlock(0x80 |  LSM9DS1_OUT_X_L_G, sizeof(block), block);
+
+            // Combine readings for each axis.
+            *g = (int16_t)(block[0] | block[1] << 8);
+            *(g+1) = (int16_t)(block[2] | block[3] << 8);
+            *(g+2) = (int16_t)(block[4] | block[5] << 8);
+        }
+
+
+        void writeAccReg(uint8_t reg, uint8_t value)
+        {
+            selectDevice(file,LSM9DS1_ACC_ADDRESS);
+
+            int result = i2c_smbus_write_byte_data(file, reg, value);
+            if (result == -1){
+
+                exit(1);
+            }
+        }
+
+        void readTMP_PRESS(int *g)
+        {
+            uint8_t block[6];
+            selectDevice(file,BMP280_ADDR);
+            readBlock(0x80 |  BMP280_PRESSION_MSB , sizeof(block), block);
+            g[0] = ((block[0] * 65536) + (block[1] * 256) + (block[2] & 0xF0)) / 16;
+            g[1] = ((block[3] * 65536) + (block[4] * 256) + (block[5] & 0xF0)) / 16;
+        }
+
+        void readCalBMP280(int16_t *Reg)
+        {
+          uint8_t block[24];
+          selectDevice(file,BMP280_ADDR);
+          readBlock(0x80 |  BMP_280_REG_COMP_T1, sizeof(block), block);
+          // Calibrage Température & Pression
+          Reg[0] = block[1] * 256 + block[0];
+
+          for(int i=1,j=2;i<3;i++,j++)
+                { if ((block[i+j] * 256 + block[j+i-1]) > 32767)  Reg[i] = (block[i+j] * 256 + block[j+i-1]) - 65536;
+                    else  Reg[i] = block[i+j] * 256 + block[j+i-1];
+                }
+
+          Reg[3] = block[7] * 256 + block[6];
+
+           for(int i=4,j=5;i<12;i++,j++)
+           {
+               if ((block[i+j] * 256 + block[j+i-1]) > 32767)  Reg[i] = (block[i+j] * 256 + block[j+i-1]) - 65536;
+               else  Reg[i] = block[i+j] * 256 + block[j+i-1];
+           }
+        }
+
+        void writeTMP()
+        {
+            //uint8_t block[2];
+            selectDevice(file,BMP280_ADDR);
+
+
+            int result1 = i2c_smbus_write_byte_data(file,BMP280_REG_CONTROL_MEAS,0x27);
+            int result2 = i2c_smbus_write_byte_data(file,BMP280_REG_CONFIG,0xA0);
+            if (result1 == -1 || result2 == -1){
+                printf ("Failed to write byte to I2C Acc.");
+                exit(1);
+            }
+        }
+
+        void writeMagReg(uint8_t reg, uint8_t value)
+        {
+                selectDevice(file,LSM9DS1_MAG_ADDRESS);
+
+            int result = i2c_smbus_write_byte_data(file, reg, value);
+            if (result == -1){
+            exit(1);
+            }
+        }
+
+
+        void writeGyrReg(uint8_t reg, uint8_t value)
+        {
+                selectDevice(file,LSM9DS1_GYR_ADDRESS);
+
+            int result = i2c_smbus_write_byte_data(file, reg, value);
+            if (result == -1){
+                exit(1);
+            }
+        }
